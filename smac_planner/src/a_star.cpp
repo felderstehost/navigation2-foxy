@@ -70,12 +70,15 @@ void AStarAlgorithm<NodeT>::initialize(
   _max_on_approach_iterations = max_on_approach_iterations;
 }
 
+// 根据node类型创建graph
+// 2D nodes : 有代价值的grid
+// 3D nodes : SE2 grid，没有代价信息，需要footprint的collision detector 
 template<>
 void AStarAlgorithm<Node2D>::createGraph(
   const unsigned int & x_size,
   const unsigned int & y_size,
   const unsigned int & dim_3_size,
-  nav2_costmap_2d::Costmap2D * & costmap)
+  nav2_costmap_2d::Costmap2D * & costmap) // *&: 指针的引用，指针它也是一个变量，*&就和普通变量的引用一样
 {
   if (dim_3_size != 1) {
     throw std::runtime_error("Node type Node2D cannot be given non-1 dim 3 quantization.");
@@ -91,6 +94,9 @@ void AStarAlgorithm<Node2D>::createGraph(
   }
 }
 
+// 根据node类型创建graph
+// 2D nodes : 有代价值的grid
+// 3D nodes : SE2 grid，没有代价信息，需要footprint的collision detector  
 template<>
 void AStarAlgorithm<NodeSE2>::createGraph(
   const unsigned int & x_size,
@@ -98,7 +104,7 @@ void AStarAlgorithm<NodeSE2>::createGraph(
   const unsigned int & dim_3_size,
   nav2_costmap_2d::Costmap2D * & costmap)
 {
-  _costmap = costmap;
+  _costmap = costmap; // AStar的_costmap指针指向 smac_planner的costmap
   _collision_checker = GridCollisionChecker(costmap);
   _collision_checker.setFootprint(_footprint, _is_radius_footprint);
 

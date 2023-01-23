@@ -225,7 +225,7 @@ nav_msgs::msg::Path SmacPlanner::createPlan(
     costmap = _costmap_downsampler->downsample(_downsampling_factor);
   }
 
-  // Set Costmap
+  // AStar的_costmap指针指向 smac_planner的costmap
   _a_star->createGraph(
     costmap->getSizeInCellsX(),
     costmap->getSizeInCellsY(),

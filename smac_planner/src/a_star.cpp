@@ -126,10 +126,12 @@ void AStarAlgorithm<NodeT>::setFootprint(nav2_costmap_2d::Footprint footprint, b
   _is_radius_footprint = use_radius;
 }
 
+// emplace node到graph中，并且返回该node的指针
 template<>
 typename AStarAlgorithm<Node2D>::NodePtr AStarAlgorithm<Node2D>::addToGraph(
   const unsigned int & index)
 {
+  // 关于unordered_map的emplace:  http://c.biancheng.net/view/7241.html
   return &(_graph.emplace(index, Node2D(_costmap->getCharMap()[index], index)).first->second);
 }
 
@@ -257,6 +259,7 @@ bool AStarAlgorithm<NodeT>::createPath(
 
   // Given an index, return a node ptr reference if its collision-free and valid
   const unsigned int max_index = getSizeX() * getSizeY() * getSizeDim3();
+  // 在getAnalyticPath中的node_getter使用
   NodeGetter neighborGetter =
     [&, this](const unsigned int & index, NodePtr & neighbor_rtn) -> bool
     {
@@ -342,7 +345,7 @@ bool AStarAlgorithm<NodeT>::isGoal(NodePtr & node)
 
 template<>
 AStarAlgorithm<NodeSE2>::NodePtr AStarAlgorithm<NodeSE2>::getAnalyticPath(
-  const NodePtr & node,
+  const NodePtr & node,  // current node
   const NodeGetter & node_getter)
 {
   ompl::base::ScopedState<> from(node->motion_table.state_space), to(
@@ -373,8 +376,12 @@ AStarAlgorithm<NodeSE2>::NodePtr AStarAlgorithm<NodeSE2>::getAnalyticPath(
   // Don't generate the first point because we are already there!
   // And the last point is the goal, so ignore it too!
   for (float i = 1; i < num_intervals; i++) {
+    // ompl::base::StateSpace的 interpolate 函数 :	Computes the state that lies at time t in [0, 1] on the segment that connects from state to to state. 
+    // The memory location of state is not required to be different from the memory of either from or to.
     node->motion_table.state_space->interpolate(from(), to(), i / num_intervals, s());
-    reals = s.reals();
+
+    // ompl::base::ScopedState<>的 reals() 函数 : Return the real values corresponding to this state. If a conversion is not possible, an exception is thrown.
+    reals = s.reals(); 
     angle = reals[2] / node->motion_table.bin_size;
     while (angle >= node->motion_table.num_angle_quantization_float) {
       angle -= node->motion_table.num_angle_quantization_float;

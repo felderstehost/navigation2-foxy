@@ -55,7 +55,7 @@ public:
   typedef NodeT * NodePtr;
   typedef std::unordered_map<unsigned int, NodeT> Graph;
   typedef std::vector<NodePtr> NodeVector;
-  typedef std::pair<float, NodeBasic<NodeT>> NodeElement;
+  typedef std::pair<float, NodeBasic<NodeT>> NodeElement;  // <cost, queued_node>
   typedef typename NodeT::Coordinates Coordinates;
   typedef typename NodeT::CoordinateVector CoordinateVector;
   typedef typename NodeVector::iterator NeighborIterator;

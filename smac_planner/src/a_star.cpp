@@ -243,7 +243,7 @@ bool AStarAlgorithm<NodeT>::createPath(
     return false;
   }
 
-  // 0) Add starting point to the open set
+  // Step 0： Add starting point to the open set
   addNode(0.0, getStart());
   getStart()->setAccumulatedCost(0.0);
 
@@ -257,9 +257,9 @@ bool AStarAlgorithm<NodeT>::createPath(
   int analytic_iterations = 0;
   int closest_distance = std::numeric_limits<int>::max();
 
-  // Given an index, return a node ptr reference if its collision-free and valid
   const unsigned int max_index = getSizeX() * getSizeY() * getSizeDim3();
   // 在getAnalyticPath中的node_getter使用
+  // Given an index, return a node ptr reference if its collision-free and valid
   NodeGetter neighborGetter =
     [&, this](const unsigned int & index, NodePtr & neighbor_rtn) -> bool
     {
@@ -272,7 +272,8 @@ bool AStarAlgorithm<NodeT>::createPath(
     };
 
   while (iterations < getMaxIterations() && !_queue.empty()) {
-    // 1) Pick Nbest from O s.t. min(f(Nbest)), remove from queue
+    // Step 1： Pick Nbest from O s.t. min(f(Nbest)), remove from queue
+    // 从open set中（一个优先队列）获取代价最小的node为当前node
     current_node = getNextNode();
 
     // We allow for nodes to be queued multiple times in case
@@ -283,10 +284,10 @@ bool AStarAlgorithm<NodeT>::createPath(
 
     iterations++;
 
-    // 2) Mark Nbest as visited
+    // Step 2： Mark Nbest as visited
     current_node->visited();
 
-    // 2.a) Use an analytic expansion (if available) to generate a path
+    // Step 3： Use an analytic expansion (if available) to generate a path
     // to the goal.
     NodePtr result = tryAnalyticExpansion(
       current_node, neighborGetter, analytic_iterations,
@@ -295,7 +296,7 @@ bool AStarAlgorithm<NodeT>::createPath(
       current_node = result;
     }
 
-    // 3) Check if we're at the goal, backtrace if required
+    // Step 4: Check if we're at the goal, backtrace if required
     if (isGoal(current_node)) {
       return backtracePath(current_node, path);
     } else if (_best_heuristic_node.first < getToleranceHeuristic()) {
@@ -309,25 +310,26 @@ bool AStarAlgorithm<NodeT>::createPath(
       }
     }
 
-    // 4) Expand neighbors of Nbest not visited
+    // Step 5: Expand neighbors of Nbest not visited
     neighbors.clear();
     NodeT::getNeighbors(
       current_node, neighborGetter, _collision_checker, _traverse_unknown, neighbors);
 
+    // Step 6: 从相邻node中找出g_cost最小的那个node
     for (neighbor_iterator = neighbors.begin();
       neighbor_iterator != neighbors.end(); ++neighbor_iterator)
     {
       neighbor = *neighbor_iterator;
 
-      // 4.1) Compute the cost to go to this node
+      // Step 6.1: Compute the cost to go to this node
       g_cost = getAccumulatedCost(current_node) + getTraversalCost(current_node, neighbor);
 
-      // 4.2) If this is a lower cost than prior, we set this as the new cost and new approach
+      // Step 6.2: If this is a lower cost than prior, we set this as the new cost and new approach
       if (g_cost < getAccumulatedCost(neighbor)) {
         neighbor->setAccumulatedCost(g_cost);
         neighbor->parent = current_node;
 
-        // 4.3) If not in queue or visited, add it, `getNeighbors()` handles
+        // Step 6.3: If not in queue or visited, add it, `getNeighbors()` handles
         neighbor->queued();
         addNode(g_cost + getHeuristicCost(neighbor), neighbor);
       }

@@ -401,9 +401,10 @@ void NodeSE2::getNeighbors(
   unsigned int index = 0;
   NodePtr neighbor = nullptr;
   Coordinates initial_node_coords;
-  const MotionPoses motion_projections = motion_table.getProjections(node);
+  const MotionPoses motion_projections = motion_table.getProjections(node); // 获得nodeSE下，下个可能node的vector
 
   for (unsigned int i = 0; i != motion_projections.size(); i++) {
+    // motion_projections推算出下个相邻node的index
     index = NodeSE2::getIndex(
       static_cast<unsigned int>(motion_projections[i]._x),
       static_cast<unsigned int>(motion_projections[i]._y),

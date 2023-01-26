@@ -225,14 +225,14 @@ nav_msgs::msg::Path SmacPlanner::createPlan(
     costmap = _costmap_downsampler->downsample(_downsampling_factor);
   }
 
-  // AStar的_costmap指针指向 smac_planner的costmap
+  // AStar的_costmap指针指向 smac_planner的costmap， 初始化motion model
   _a_star->createGraph(
     costmap->getSizeInCellsX(),
     costmap->getSizeInCellsY(),
     _angle_quantizations,
     costmap);
 
-  // Set starting point, in A* bin search coordinates
+  // 设置起始点（都是int类型）， in A* bin search coordinates
   unsigned int mx, my;
   costmap->worldToMap(start.pose.position.x, start.pose.position.y, mx, my);
   double orientation_bin = tf2::getYaw(start.pose.orientation) / _angle_bin_size;
@@ -242,7 +242,7 @@ nav_msgs::msg::Path SmacPlanner::createPlan(
   unsigned int orientation_bin_id = static_cast<unsigned int>(floor(orientation_bin));
   _a_star->setStart(mx, my, orientation_bin_id);
 
-  // Set goal point, in A* bin search coordinates
+  // 设置目标点（都是int类型）， in A* bin search coordinates
   costmap->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my);
   orientation_bin = tf2::getYaw(goal.pose.orientation) / _angle_bin_size;
   while (orientation_bin < 0.0) {
@@ -251,7 +251,7 @@ nav_msgs::msg::Path SmacPlanner::createPlan(
   orientation_bin_id = static_cast<unsigned int>(floor(orientation_bin));
   _a_star->setGoal(mx, my, orientation_bin_id);
 
-  // Setup message
+  // 设置 plan 的 message
   nav_msgs::msg::Path plan;
   plan.header.stamp = _clock->now();
   plan.header.frame_id = _global_frame;
@@ -263,9 +263,9 @@ nav_msgs::msg::Path SmacPlanner::createPlan(
   pose.pose.orientation.z = 0.0;
   pose.pose.orientation.w = 1.0;
 
-  // Compute plan
+  //* 计算 plan
   NodeSE2::CoordinateVector path;
-  int num_iterations = 0;
+  int num_iterations = 0; // ?
   std::string error;
   try {
     if (!_a_star->createPath(
@@ -298,7 +298,7 @@ nav_msgs::msg::Path SmacPlanner::createPlan(
   plan.poses.reserve(path.size());
 
   for (int i = path.size() - 1; i >= 0; --i) {
-    path_world.push_back(getWorldCoords(path[i].x, path[i].y, costmap));
+    path_world.push_back(getWorldCoords(path[i].x, path[i].y, costmap)); //  continuous grid coordinates   ——>   world coordinates
     pose.pose.position.x = path_world.back().x();
     pose.pose.position.y = path_world.back().y();
     pose.pose.orientation = getWorldOrientation(path[i].theta);

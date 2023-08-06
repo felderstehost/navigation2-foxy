@@ -18,6 +18,9 @@ find_package(nav2_costmap_2d REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(nav2_core REQUIRED)
 
+set(CMAKE_BUILD_TYPE Debug) #Debug, Release
+
+
 nav2_package()
 
 include_directories(
